@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>타이머 & 스톱워치</title>
+    <link rel="icon" href="clock.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="clock.ico">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 기본 적용 */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue', Arial, sans-serif;
+            /* 배경 전환을 부드럽게 */
+            transition: background-color 0.3s ease;
+        }
+        /* 스크롤바 숨김 (랩 기록용 + 시간 설정용) */
+        #lap-list::-webkit-scrollbar,
+        #time-controls::-webkit-scrollbar {
+            display: none;
+        }
+        #lap-list,
+        #time-controls {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* 타이머 버튼 크기 고정 (움직임 방지) */
+        .timer-action-button {
+            width: 110px; /* '일시정지' 텍스트를 포함할 수 있도록 너비 확대 및 고정 */
+            height: 48px; /* 세로 크기 고정 (h-12) */
+            text-align: center;
+            white-space: nowrap; /* 텍스트가 한 줄로 유지되도록 강제 */
+            line-height: 1.25rem; /* 텍스트 수직 중앙 정렬 (Tailwind text-base) */
+            /* 모든 상태 변화 시 트랜지션 적용 */
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        /* '기억' 텍스트 한 줄 고정 */
+        #timer-remember span {
+             white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="bg-white flex justify-center items-start min-h-screen p-4 sm:p-8">
+
+    <div class="w-full max-w-5xl flex flex-col items-center" style="transform: scale(1.1); transform-origin: top center;">
+        
+        <div class="relative flex space-x-2 bg-gray-100 p-1 rounded-full mb-6 sm:mb-10">
+            <button id="tab-timer" class="tab-btn py-2 px-6 rounded-full text-sm font-semibold transition-all duration-300 bg-white text-blue-600 shadow">
+                타이머
+            </button>
+            <button id="tab-stopwatch" class="tab-btn py-2 px-6 rounded-full text-sm font-semibold transition-all duration-300 text-gray-600">
+                스톱워치
+            </button>
+            <span class="absolute right-0 top-0 -mr-40 text-white text-xs whitespace-nowrap select-none opacity-50" style="color: white; user-select: none; -webkit-user-select: none; pointer-events: none;">
+                과학실험공장장은 쌤
+            </span>
+        </div>
+
+        <div id="timer-view" class="w-full flex flex-col items-center data-[active='false']:hidden" data-active="true">
+            <div id="timer-display" class="font-bold text-black text-center w-full text-[clamp(4.5rem,24vw,20rem)] leading-none mt-0 mb-12 sm:mt-0 sm:mb-16">
+                00:00<span class="text-[clamp(2.5rem,14vw,11rem)]">.00</span>
+            </div>
+
+            <div id="time-controls" class="w-full flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2">
+                <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
+                    <span class="pl-4 pr-2 py-2 text-sm font-bold text-gray-700">10분</span>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-blue-600 hover:bg-blue-200 transition-all" data-time="600" data-op="+">+</button>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-red-500 hover:bg-blue-200 transition-all border-l border-gray-200" data-time="600" data-op="-">−</button>
+                </div>
+                <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
+                    <span class="pl-4 pr-2 py-2 text-sm font-bold text-gray-700">5분</span>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-blue-600 hover:bg-blue-200 transition-all" data-time="300" data-op="+">+</button>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-red-500 hover:bg-blue-200 transition-all border-l border-gray-200" data-time="300" data-op="-">−</button>
+                </div>
+                <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
+                    <span class="pl-4 pr-2 py-2 text-sm font-bold text-gray-700">1분</span>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-blue-600 hover:bg-blue-200 transition-all" data-time="60" data-op="+">+</button>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-red-500 hover:bg-blue-200 transition-all border-l border-gray-200" data-time="60" data-op="-">−</button>
+                </div>
+                <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
+                    <span class="pl-4 pr-2 py-2 text-sm font-bold text-gray-700">30초</span>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-blue-600 hover:bg-gray-200 transition-all" data-time="30" data-op="+">+</button>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-red-500 hover:bg-gray-200 transition-all border-l border-gray-200" data-time="30" data-op="-">−</button>
+                </div>
+                <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
+                    <span class="pl-4 pr-2 py-2 text-sm font-bold text-gray-700">10초</span>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-blue-600 hover:bg-gray-200 transition-all" data-time="10" data-op="+">+</button>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-red-500 hover:bg-gray-200 transition-all border-l border-gray-200" data-time="10" data-op="-">−</button>
+                </div>
+                <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
+                    <span class="pl-4 pr-2 py-2 text-sm font-bold text-gray-700">5초</span>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-blue-600 hover:bg-gray-200 transition-all" data-time="5" data-op="+">+</button>
+                    <button class="time-adj w-10 h-10 text-xl font-bold text-red-500 hover:bg-gray-200 transition-all border-l border-gray-200" data-time="5" data-op="-">−</button>
+                </div>
+
+                <div class="flex-shrink-0 flex items-center gap-1">
+                    <input type="text" inputmode="numeric" id="manual-min" min="0" placeholder="분" class="w-12 p-2 text-center text-base border border-gray-300 rounded-lg shadow-inner">
+                    <span class="text-base font-bold text-gray-400">:</span>
+                    <input type="text" inputmode="numeric" id="manual-sec" min="0" max="59" placeholder="초" class="w-12 p-2 text-center text-base border border-gray-300 rounded-lg shadow-inner">
+                    <button id="set-time" class="py-2 px-3 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition-all shadow-sm text-sm">
+                        설정
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 sm:space-x-3 w-full max-w-md justify-center items-center">
+                <button id="timer-start" class="timer-action-button text-base font-bold rounded-lg shadow-md bg-green-500 hover:bg-green-600 text-white">
+                    시작
+                </button>
+                <button id="timer-reset" class="timer-action-button text-base font-bold rounded-lg shadow-md bg-gray-200 hover:bg-gray-300 text-gray-800">
+                    초기화
+                </button>
+                <button id="timer-sound" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full text-2xl shadow-md transition-all">
+                    <svg id="sound-on" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15z" />
+                    </svg>
+                    <svg id="sound-off" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15zM16 10l6 6M22 10l-6 6" />
+                    </svg>
+                </button>
+                <div id="timer-remember" class="flex items-center gap-1.5 py-2.5 px-0 text-lg transition-all text-gray-600 cursor-pointer ml-3">
+                    <svg id="remember-off" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3z" />
+                    </svg>
+                    <svg id="remember-on" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                    <span class="font-bold text-base">기억</span> 
+                </div>
+            </div>
+        </div>
+
+        <div id="stopwatch-view" class="w-full flex flex-col items-center data-[active='false']:hidden" data-active="false">
+            <div id="stopwatch-display" class="font-bold text-black text-center w-full text-[clamp(4.5rem,24vw,20rem)] leading-none mt-0 mb-12 sm:mt-0 sm:mb-16">
+                00:00<span class="text-[clamp(2.5rem,14vw,11rem)]">.00</span>
+            </div>
+
+            <div class="flex space-x-3 sm:space-x-4">
+                <button id="sw-start-stop" class="py-2 sm:py-2.5 px-6 sm:px-8 text-base sm:text-lg font-bold rounded-lg shadow-md transition-all bg-green-500 hover:bg-green-600 text-white w-32 sm:w-40 text-center">
+                    시작
+                    <span class="block text-xs font-normal opacity-80">(Space bar)</span>
+                </button>
+                <button id="sw-lap-reset" class="py-2 sm:py-2.5 px-6 sm:px-8 text-base sm:text-lg font-bold rounded-lg shadow-md transition-all bg-gray-200 hover:bg-gray-300 text-gray-800 w-32 sm:w-40 text-center">
+                    초기화
+                </button>
+            </div>
+
+            <div id="lap-container" class="w-full max-w-4xl mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+                <div id="lap-list" class="flex flex-wrap justify-center gap-2 sm:gap-3 max-h-40 sm:max-h-52 overflow-y-auto pb-4">
+                    </div>
+                <div class="text-center mt-0">
+                    <button id="clear-laps" class="text-red-500 hover:text-red-700 text-sm font-medium hover:underline hidden">
+                        전체 삭제
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 공통 DOM 요소 ---
+            const tabTimer = document.getElementById('tab-timer');
+            const tabStopwatch = document.getElementById('tab-stopwatch');
+            const timerView = document.getElementById('timer-view');
+            const stopwatchView = document.getElementById('stopwatch-view');
+            
+            // --- Web Audio API (알람 소리) ---
+            let audioContext;
+            let oscillator;
+            let gainNode;
+            let beepTimeout1, beepTimeout2; // 3번 반복용 타임아웃
+            const timerSoundButton = document.getElementById('timer-sound');
+            const soundOnIcon = document.getElementById('sound-on');
+            const soundOffIcon = document.getElementById('sound-off');
+            let soundEnabled = true;
+
+            function initAudio() {
+                // 사용자가 페이지와 상호작용할 때 AudioContext 생성
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        console.warn("Web Audio API is not supported in this browser.");
+                        soundEnabled = false; // 오디오 API 사용 불가
+                        if(timerSoundButton) timerSoundButton.style.display = 'none';
+                    }
+                }
+            }
+
+            function playBeep() {
+                if (!audioContext || !soundEnabled || audioContext.state !== 'running') return;
+                
+                // 0.8초간 '삐' 소리 (볼륨 서서히 줄어듦)
+                if (oscillator) {
+                    try { oscillator.stop(audioContext.currentTime); } catch(e) { /* ignore error on already stopped source */ }
+                }
+
+                gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+
+                oscillator = audioContext.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                oscillator.connect(gainNode);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.8); 
+            }
+
+            function stopBeep() {
+                clearTimeout(beepTimeout1);
+                clearTimeout(beepTimeout2);
+                if (oscillator) {
+                    try { oscillator.stop(audioContext.currentTime); } catch(e) {}
+                    oscillator = null;
+                }
+            }
+            
+            document.body.addEventListener('click', initAudio, { once: true });
+            document.body.addEventListener('touchstart', initAudio, { once: true });
+
+
+            // --- 타이머 DOM 요소 ---
+            const timerDisplay = document.getElementById('timer-display');
+            const timeAdjButtons = document.querySelectorAll('.time-adj');
+            const manualMinInput = document.getElementById('manual-min');
+            const manualSecInput = document.getElementById('manual-sec');
+            const setTimeButton = document.getElementById('set-time');
+            const timerStartButton = document.getElementById('timer-start');
+            const timerResetButton = document.getElementById('timer-reset');
+            const timerRememberDiv = document.getElementById('timer-remember'); 
+            const rememberOnIcon = document.getElementById('remember-on');
+            const rememberOffIcon = document.getElementById('remember-off');
+            let timerRunning = false;
+            let totalMilliseconds = 0;
+            let timerInterval = null;
+            let timerTargetTime = 0;
+            let rememberTimeEnabled = false;
+            let lastSetTimeMs = 0;
+            
+            // --- 스톱워치 DOM 요소 ---
+            const stopwatchDisplay = document.getElementById('stopwatch-display');
+            const swStartStopButton = document.getElementById('sw-start-stop');
+            const swLapResetButton = document.getElementById('sw-lap-reset');
+            const lapList = document.getElementById('lap-list');
+            const clearLapsButton = document.getElementById('clear-laps');
+            let swStartTime = 0;
+            let swElapsedTime = 0;
+            let swInterval = null;
+            let swRunning = false;
+
+            // =================================================================
+            // 스톱워치 버튼 상태 업데이트
+            // =================================================================
+            function updateStopwatchButtonState() {
+                if (swRunning) {
+                    // 실행 중: 일시정지
+                    swStartStopButton.innerHTML = '일시정지<span class="block text-xs font-normal opacity-80">(Space bar)</span>';
+                    swStartStopButton.classList.replace('bg-green-500', 'bg-red-500');
+                    swStartStopButton.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
+                } else if (swElapsedTime > 0) {
+                    // 일시정지 후: 재시작
+                    swStartStopButton.innerHTML = '재시작<span class="block text-xs font-normal opacity-80">(Space bar)</span>';
+                    swStartStopButton.classList.replace('bg-red-500', 'bg-green-500');
+                    swStartStopButton.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
+                } else {
+                    // 초기 상태 또는 초기화 후: 시작
+                    swStartStopButton.innerHTML = '시작<span class="block text-xs font-normal opacity-80">(Space bar)</span>';
+                    swStartStopButton.classList.replace('bg-red-500', 'bg-green-500');
+                    swStartStopButton.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
+                }
+                
+                // 초기화 버튼은 항상 회색 유지 (로직 변경됨)
+                swLapResetButton.textContent = '초기화';
+                swLapResetButton.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'bg-red-500', 'hover:bg-red-600');
+                swLapResetButton.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+            }
+
+            // =================================================================
+            // 탭 전환 기능
+            // =================================================================
+            function switchTab(view) {
+                if (!timerView || !stopwatchView) return; 
+                
+                if (timerRunning) pauseTimer(); 
+                
+                // 탭 전환 시 스톱워치 상태를 강제로 일시정지 상태로 전환 (재시작 가능하도록)
+                if (swRunning) {
+                    clearInterval(swInterval);
+                    swRunning = false;
+                    swElapsedTime += (Date.now() - swStartTime); 
+                }
+
+                if (view === 'timer') {
+                    // 타이머 탭 활성화 UI
+                    tabTimer.classList.add('bg-white', 'text-blue-600', 'shadow');
+                    tabTimer.classList.remove('text-gray-600');
+                    tabStopwatch.classList.remove('bg-white', 'text-blue-600', 'shadow');
+                    tabStopwatch.classList.add('text-gray-600');
+                    
+                    timerView.dataset.active = 'true';
+                    stopwatchView.dataset.active = 'false';
+                } else {
+                    // 스톱워치 탭 활성화 UI
+                    tabStopwatch.classList.add('bg-white', 'text-blue-600', 'shadow');
+                    tabStopwatch.classList.remove('text-gray-600');
+                    tabTimer.classList.remove('bg-white', 'text-blue-600', 'shadow');
+                    tabTimer.classList.add('text-gray-600');
+
+                    timerView.dataset.active = 'false';
+                    stopwatchView.dataset.active = 'true';
+                    
+                    // 스톱워치 탭으로 전환 시 버튼 상태 업데이트
+                    updateStopwatchButtonState();
+                }
+            }
+
+            tabTimer.addEventListener('click', () => switchTab('timer'));
+            tabStopwatch.addEventListener('click', () => switchTab('stopwatch'));
+
+            // =================================================================
+            // 헬퍼 함수 (시간 포맷)
+            // =================================================================
+            
+            function formatDisplayTime(ms) {
+                const effectiveMs = Math.max(0, ms); 
+                const totalSec = Math.floor(effectiveMs / 1000);
+                const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+                const s = (totalSec % 60).toString().padStart(2, '0');
+                const millis = Math.floor((effectiveMs % 1000) / 10).toString().padStart(2, '0');
+                return `${m}:${s}<span class="text-[clamp(2.8rem,15vw,12rem)]">.${millis}</span>`;
+            }
+
+            function formatLapTime(ms) {
+                const totalSec = Math.floor(ms / 1000);
+                const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+                const s = (totalSec % 60).toString().padStart(2, '0');
+                const millis = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+                return `${m}:${s}.${millis}`;
+            }
+
+            
+            // =================================================================
+            // 타이머 기능
+            // =================================================================
+
+            // [수정된 함수] 버튼 상태 일괄 업데이트
+            function updateTimerButtonStates(isRunning) {
+                if (isRunning) {
+                    // 실행 중: 시작 버튼(회색/일시정지), 초기화 버튼(빨강)
+                    timerStartButton.textContent = '일시정지';
+                    timerStartButton.classList.remove('bg-green-500', 'hover:bg-green-600', 'text-white');
+                    timerStartButton.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                    
+                    timerResetButton.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                    timerResetButton.classList.add('bg-red-500', 'hover:bg-red-600', 'text-white');
+                } else {
+                    // 정지 중: 시작 버튼(초록/시작), 초기화 버튼(회색)
+                    timerStartButton.textContent = '시작';
+                    timerStartButton.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                    timerStartButton.classList.add('bg-green-500', 'hover:bg-green-600', 'text-white');
+
+                    timerResetButton.classList.remove('bg-red-500', 'hover:bg-red-600', 'text-white');
+                    timerResetButton.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                }
+            }
+
+            function updateTimerDisplay() {
+                // 6초부터 배경색 변경
+                if (timerRunning && totalMilliseconds <= 6000 && totalMilliseconds > 0) {
+                    document.body.classList.add('bg-red-500');
+                    timerDisplay.classList.add('text-white');
+                    timerDisplay.classList.remove('text-black');
+                } else {
+                    document.body.classList.remove('bg-red-500');
+                    timerDisplay.classList.remove('text-white');
+                    timerDisplay.classList.add('text-black');
+                }
+                timerDisplay.innerHTML = formatDisplayTime(totalMilliseconds);
+            }
+
+            timeAdjButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    if (timerRunning) return;
+                    const time = parseInt(button.dataset.time); 
+                    const op = button.dataset.op;
+                    if (op === '+') {
+                        totalMilliseconds += (time * 1000);
+                    } else if (op === '-') {
+                        totalMilliseconds = Math.max(0, totalMilliseconds - (time * 1000));
+                    }
+                    lastSetTimeMs = totalMilliseconds;
+                    updateTimerDisplay();
+                });
+            });
+
+            setTimeButton.addEventListener('click', () => {
+                if (timerRunning) return;
+                const minutes = parseFloat(manualMinInput.value) || 0;
+                const seconds = parseFloat(manualSecInput.value) || 0;
+                const adjustedSeconds = Math.min(59, seconds);
+                totalMilliseconds = (minutes * 60 * 1000) + (adjustedSeconds * 1000);
+                lastSetTimeMs = totalMilliseconds;
+                updateTimerDisplay();
+                manualMinInput.value = '';
+                manualSecInput.value = '';
+            });
+
+            function filterNumericInput(e) {
+                if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && !e.key.includes('Arrow')) {
+                    e.preventDefault();
+                }
+            }
+            manualMinInput.addEventListener('keydown', filterNumericInput);
+            manualSecInput.addEventListener('keydown', filterNumericInput);
+
+            timerStartButton.addEventListener('click', () => {
+                if (totalMilliseconds <= 0 && !timerRunning) return;
+                
+                initAudio();
+                timerRunning = !timerRunning;
+                
+                if (timerRunning) {
+                    // '시작' 로직
+                    timerTargetTime = Date.now() + totalMilliseconds; 
+                    timerInterval = setInterval(runTimer, 10); 
+                } else {
+                    // '일시정지' 로직
+                    pauseTimer();
+                }
+                
+                updateTimerButtonStates(timerRunning); // 버튼 상태 일괄 업데이트
+            });
+
+            function runTimer() {
+                const remaining = timerTargetTime - Date.now();
+                if (remaining <= 0) {
+                    totalMilliseconds = 0;
+                    updateTimerDisplay();
+                    stopTimer(true); // 알람 울리고 정지
+                } else {
+                    totalMilliseconds = remaining;
+                    updateTimerDisplay();
+                }
+            }
+
+            function pauseTimer() {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                
+                updateTimerButtonStates(false); // 버튼 상태 일괄 업데이트
+                
+                document.body.classList.remove('bg-red-500');
+                timerDisplay.classList.remove('text-white');
+                timerDisplay.classList.add('text-black');
+            }
+
+            function stopTimer(playAlarm) {
+                pauseTimer(); // pauseTimer가 버튼 상태를 복구
+                if (playAlarm && soundEnabled) {
+                    playBeep();
+                    beepTimeout1 = setTimeout(playBeep, 800);
+                    beepTimeout2 = setTimeout(playBeep, 1600);
+                }
+                if (rememberTimeEnabled) {
+                    totalMilliseconds = lastSetTimeMs;
+                } else {
+                    totalMilliseconds = 0;
+                    lastSetTimeMs = 0;
+                }
+                updateTimerDisplay(); 
+            }
+
+            timerResetButton.addEventListener('click', () => {
+                stopBeep();
+                stopTimer(false); // 알람 없이 정지 (버튼 상태는 stopTimer -> pauseTimer가 처리)
+            });
+
+            timerSoundButton.addEventListener('click', () => {
+                initAudio();
+                soundEnabled = !soundEnabled;
+                soundOnIcon.classList.toggle('hidden', !soundEnabled);
+                soundOffIcon.classList.toggle('hidden', soundEnabled);
+                
+                // [수정] 소리 끔/켬에 따라 배경색 및 아이콘 색상 변경
+                if (!soundEnabled) {
+                    stopBeep();
+                    // 소리 끔: 배경 빨간색, 아이콘 흰색
+                    timerSoundButton.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+                    timerSoundButton.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
+                    soundOffIcon.classList.add('text-white'); // X 아이콘도 흰색으로
+                } else {
+                    // 소리 켬: 배경 회색(기본), 아이콘 검은색(기본)
+                    timerSoundButton.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
+                    timerSoundButton.classList.add('bg-gray-200', 'hover:bg-gray-300');
+                    soundOffIcon.classList.remove('text-white');
+                }
+            });
+
+            // "기억" div 클릭 시 토글
+            timerRememberDiv.addEventListener('click', () => {
+                rememberTimeEnabled = !rememberTimeEnabled;
+                rememberOnIcon.classList.toggle('hidden', !rememberTimeEnabled);
+                rememberOffIcon.classList.toggle('hidden', rememberTimeEnabled);
+                
+                // 체크 시 아이콘과 텍스트 색상만 변경
+                if (rememberTimeEnabled) {
+                    timerRememberDiv.classList.add('text-blue-600'); 
+                    rememberOnIcon.classList.remove('text-blue-600');
+                    rememberOnIcon.classList.add('text-blue-600'); // (혹시 모르니)
+                } else {
+                    timerRememberDiv.classList.remove('text-blue-600');
+                }
+            });
+
+            // =================================================================
+            // 스톱워치 기능
+            // =================================================================
+
+            function updateStopwatch() {
+                const now = Date.now();
+                const displayTime = swElapsedTime + (now - swStartTime);
+                stopwatchDisplay.innerHTML = formatDisplayTime(displayTime); 
+            }
+
+            // [수정] 좌측 버튼은 시작/일시정지/재시작 역할
+            swStartStopButton.addEventListener('click', () => {
+                initAudio();
+
+                if (!swRunning) {
+                    // 시작 또는 재시작
+                    swStartTime = Date.now();
+                    swInterval = setInterval(updateStopwatch, 10);
+                    swRunning = true;
+                } else {
+                    // 일시정지
+                    clearInterval(swInterval);
+                    const now = Date.now();
+                    const currentTotalTime = swElapsedTime + (now - swStartTime); 
+                    swElapsedTime = currentTotalTime;
+                    swRunning = false;
+                    
+                    // [수정] 일시정지 시 화면을 최종 시간으로 업데이트
+                    stopwatchDisplay.innerHTML = formatDisplayTime(swElapsedTime);
+                    
+                    // 일시정지 시 기록 추가
+                    if (swElapsedTime > 0) {
+                        addLap(swElapsedTime); 
+                    }
+                }
+                updateStopwatchButtonState();
+            });
+            
+            // [수정] 우측 버튼은 항상 '초기화' (기록 생성 안 함)
+            swLapResetButton.addEventListener('click', () => {
+                resetStopwatch();
+            });
+
+            // 랩 추가 함수
+            function addLap(lapTimeValue) {
+                const lapTimeFormatted = formatLapTime(lapTimeValue);
+                
+                const lapItem = document.createElement('div');
+                // [수정] 스톱워치 기록 항목 가로 길이 축소 (w-32 sm:w-36)
+                lapItem.className = 'flex items-center justify-between gap-1 bg-gray-100 rounded-lg py-1 px-2 shadow-sm w-32 sm:w-36'; 
+                lapItem.innerHTML = `
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-blue-600 text-base">${lapList.children.length + 1}.</span> 
+                        <span class="text-gray-800 text-xl font-bold">${lapTimeFormatted}</span> 
+                    </div>
+                    <button class="delete-lap text-red-400 hover:text-red-600 cursor-pointer text-xl font-bold transition-all" title="삭제">&times;</button>
+                `;
+                
+                lapList.appendChild(lapItem); 
+                reorderLapNumbers();
+                lapList.scrollTop = lapList.scrollHeight;
+                clearLapsButton.classList.remove('hidden');
+            }
+
+            // 랩 삭제
+            lapList.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-lap');
+                if (deleteButton) {
+                    deleteButton.parentElement.remove();
+                    
+                    if (lapList.children.length === 0) {
+                        clearLapsButton.classList.add('hidden');
+                    }
+                    reorderLapNumbers();
+                }
+            });
+            
+            // 랩 번호 재정렬
+            function reorderLapNumbers() {
+                const laps = lapList.children;
+                for (let i = 0; i < laps.length; i++) {
+                    const numberSpan = laps[i].querySelector('.text-blue-600');
+                    if (numberSpan) {
+                        numberSpan.textContent = `${i + 1}.`;
+                    }
+                }
+            }
+
+
+            // 랩 전체 삭제
+            clearLapsButton.addEventListener('click', () => {
+                lapList.innerHTML = '';
+                clearLapsButton.classList.add('hidden');
+            });
+
+            // 스톱워치 초기화
+            function resetStopwatch() {
+                clearInterval(swInterval);
+                swRunning = false;
+                swElapsedTime = 0;
+                swStartTime = 0;
+                
+                stopwatchDisplay.innerHTML = formatDisplayTime(0); 
+                
+                updateStopwatchButtonState();
+            }
+            
+            // 스페이스 키 기능
+            document.addEventListener('keydown', (e) => {
+                if (stopwatchView.dataset.active === 'true') {
+                    if (e.code === 'Space' && !e.repeat) {
+                        e.preventDefault();
+                        swStartStopButton.click();
+                    }
+                }
+            });
+
+            // --- 초기화 ---
+            updateTimerDisplay(); 
+            updateTimerButtonStates(false); // 초기 로드 시 타이머 버튼 상태 설정
+        });
+    </script>
+</body>
+</html>
