@@ -14,8 +14,9 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             /* 배경 전환을 부드럽게 */
             transition: background-color 0.3s ease;
-            /* 가로 스크롤 관련 수정 */
+            /* 가로 스크롤이 필요할 때만 나타나도록 설정 */
             overflow-x: auto;
+            min-width: 0;
         }
         /* 스크롤바 숨김 (랩 기록용 + 시간 설정용) */
         #lap-list::-webkit-scrollbar,
@@ -44,12 +45,12 @@
         }
     </style>
 </head>
-<body class="bg-white min-h-screen p-4 sm:p-8 flex flex-col">
+<body class="bg-white min-h-screen p-4 sm:p-8 flex flex-col items-center">
 
-    <!-- 메인 컨테이너: mx-auto와 min-w 설정을 통해 가로 스크롤 대응 -->
-    <div class="w-full max-w-5xl flex flex-col items-center mx-auto min-w-[320px]">
+    <!-- 메인 컨테이너: min-w-0을 적용하여 창이 줄어드는 것을 방해하지 않음 -->
+    <div class="w-full max-w-5xl flex flex-col items-center mx-auto min-w-0">
         
-        <div class="relative flex space-x-2 bg-gray-100 p-1 rounded-full mb-6 sm:mb-10">
+        <div class="relative flex space-x-2 bg-gray-100 p-1 rounded-full mb-6 sm:mb-10 flex-shrink-0">
             <button id="tab-timer" class="tab-btn py-2 px-6 rounded-full text-sm font-semibold transition-all duration-300 bg-white text-blue-600 shadow">
                 타이머
             </button>
@@ -63,42 +64,43 @@
 
         <!-- 타이머 뷰 -->
         <div id="timer-view" class="w-full flex flex-col items-center data-[active='false']:hidden" data-active="true">
-            <div id="timer-display" class="font-bold text-black text-center w-full text-[clamp(2rem,22vw,20rem)] leading-none mt-0 mb-8 sm:mt-0 sm:mb-16">
-                00:00<span class="text-[clamp(1.2rem,12vw,11rem)]">.00</span>
+            <div id="timer-display" class="font-bold text-black text-center w-full text-[clamp(1.5rem,22vw,20rem)] leading-none mt-0 mb-8 sm:mt-0 sm:mb-16">
+                00:00<span class="text-[clamp(1rem,12vw,11rem)]">.00</span>
             </div>
 
-            <div id="time-controls" class="w-full flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 justify-start sm:justify-center">
+            <!-- 시간 설정 컨트롤: overflow-x-auto를 유지하되 정렬 최적화 -->
+            <div id="time-controls" class="w-full flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 justify-start md:justify-center px-2">
                 <!-- 10분 설정 -->
                 <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
-                    <button class="time-adj flex items-center pl-4 pr-2 py-2 hover:bg-blue-200 transition-all" data-time="600" data-op="+">
-                        <span class="text-xs sm:text-sm font-bold text-gray-700">10분</span>
-                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600">+</span>
+                    <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-blue-200 transition-all border-r border-blue-200" data-time="600" data-op="+">
+                        <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">10분</span>
+                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600 pointer-events-none">+</span>
                     </button>
-                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all border-l border-blue-200 flex items-center justify-center" data-time="600" data-op="-">−</button>
+                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all flex items-center justify-center" data-time="600" data-op="-">−</button>
                 </div>
                 <!-- 5분 설정 -->
                 <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
-                    <button class="time-adj flex items-center pl-4 pr-2 py-2 hover:bg-blue-200 transition-all" data-time="300" data-op="+">
-                        <span class="text-xs sm:text-sm font-bold text-gray-700">5분</span>
-                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600">+</span>
+                    <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-blue-200 transition-all border-r border-blue-200" data-time="300" data-op="+">
+                        <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">5분</span>
+                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600 pointer-events-none">+</span>
                     </button>
-                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all border-l border-blue-200 flex items-center justify-center" data-time="300" data-op="-">−</button>
+                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all flex items-center justify-center" data-time="300" data-op="-">−</button>
                 </div>
                 <!-- 1분 설정 -->
                 <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
-                    <button class="time-adj flex items-center pl-4 pr-2 py-2 hover:bg-blue-200 transition-all" data-time="60" data-op="+">
-                        <span class="text-xs sm:text-sm font-bold text-gray-700">1분</span>
-                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600">+</span>
+                    <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-blue-200 transition-all border-r border-blue-200" data-time="60" data-op="+">
+                        <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">1분</span>
+                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600 pointer-events-none">+</span>
                     </button>
-                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all border-l border-blue-200 flex items-center justify-center" data-time="60" data-op="-">−</button>
+                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all flex items-center justify-center" data-time="60" data-op="-">−</button>
                 </div>
                 <!-- 30초 설정 -->
                 <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
-                    <button class="time-adj flex items-center pl-4 pr-2 py-2 hover:bg-gray-200 transition-all" data-time="30" data-op="+">
-                        <span class="text-xs sm:text-sm font-bold text-gray-700">30초</span>
-                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600">+</span>
+                    <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-gray-200 transition-all border-r border-gray-200" data-time="30" data-op="+">
+                        <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">30초</span>
+                        <span class="ml-2 text-lg sm:text-xl font-bold text-blue-600 pointer-events-none">+</span>
                     </button>
-                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-gray-200 transition-all border-l border-gray-200 flex items-center justify-center" data-time="30" data-op="-">−</button>
+                    <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-gray-200 transition-all flex items-center justify-center" data-time="30" data-op="-">−</button>
                 </div>
 
                 <div class="flex-shrink-0 flex items-center gap-1 ml-2">
@@ -140,8 +142,8 @@
 
         <!-- 스톱워치 뷰 -->
         <div id="stopwatch-view" class="w-full flex flex-col items-center data-[active='false']:hidden" data-active="false">
-            <div id="stopwatch-display" class="font-bold text-black text-center w-full text-[clamp(2rem,22vw,20rem)] leading-none mt-0 mb-8 sm:mt-0 sm:mb-16">
-                00:00<span class="text-[clamp(1.2rem,12vw,11rem)]">.00</span>
+            <div id="stopwatch-display" class="font-bold text-black text-center w-full text-[clamp(1.5rem,22vw,20rem)] leading-none mt-0 mb-8 sm:mt-0 sm:mb-16">
+                00:00<span class="text-[clamp(1rem,12vw,11rem)]">.00</span>
             </div>
 
             <div class="flex flex-wrap justify-center items-end gap-2 sm:gap-3 w-full px-4">
@@ -319,7 +321,7 @@
                 const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
                 const s = (totalSec % 60).toString().padStart(2, '0');
                 const millis = Math.floor((effectiveMs % 1000) / 10).toString().padStart(2, '0');
-                return `${m}:${s}<span class="text-[clamp(1.2rem,12vw,12rem)]">.${millis}</span>`;
+                return `${m}:${s}<span class="text-[clamp(1rem,12vw,12rem)]">.${millis}</span>`;
             }
 
             function formatLapTime(ms) {
@@ -360,8 +362,9 @@
             }
 
             timeAdjButtons.forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', (e) => {
                     if (timerRunning) return;
+                    // 버블링 방지는 필요 없음 (모두 버튼이므로)
                     const time = parseInt(button.dataset.time); 
                     const op = button.dataset.op;
                     if (op === '+') {
@@ -511,7 +514,7 @@
             function addLap(lapTimeValue) {
                 const lapTimeFormatted = formatLapTime(lapTimeValue);
                 const lapItem = document.createElement('div');
-                lapItem.className = 'flex items-center justify-between gap-1 bg-gray-100 rounded-lg py-1 px-2 shadow-sm w-32 sm:w-36'; 
+                lapItem.className = 'flex items-center justify-between gap-1 bg-gray-100 rounded-lg py-1 px-2 shadow-sm w-32 sm:w-36 flex-shrink-0'; 
                 lapItem.innerHTML = `
                     <div class="flex items-center gap-1">
                         <span class="font-bold text-blue-600 text-sm sm:text-base">${lapList.children.length + 1}.</span> 
