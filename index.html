@@ -45,6 +45,25 @@
             width: 100%; /* 너비를 화면에 맞춤 */
             overflow-x: hidden; /* 전체 페이지 가로 스크롤 방지 */
         }
+        /* 볼륨 슬라이더 커스텀 스타일 */
+        #volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #9ca3af; /* 가로 선 색상을 더 명확하게 변경 */
+            outline: none;
+            border-radius: 999px;
+            height: 4px; /* 선의 두께 명시 */
+        }
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+            margin-top: 0px; /* 선 중앙에 맞춤 */
+        }
     </style>
 </head>
 <body class="bg-white">
@@ -133,14 +152,18 @@
                 <div class="flex space-x-2 sm:space-x-3 w-full max-w-md justify-center items-center">
                     <button id="timer-start" class="timer-action-button text-sm font-bold rounded-lg shadow-md bg-green-500 hover:bg-green-600 text-white">시작</button>
                     <button id="timer-reset" class="timer-action-button text-sm font-bold rounded-lg shadow-md bg-gray-200 hover:bg-gray-300 text-gray-800">초기화</button>
-                    <button id="timer-sound" class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full text-xl shadow-md">
-                        <svg id="sound-on" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15z" />
-                        </svg>
-                        <svg id="sound-off" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15zM16 10l6 6M22 10l-6 6" />
-                        </svg>
-                    </button>
+                    <div class="flex items-center bg-gray-200 rounded-full px-2 py-1 shadow-md space-x-2">
+                        <button id="timer-sound" class="w-8 h-8 flex-shrink-0 flex items-center justify-center hover:bg-gray-300 rounded-full text-xl">
+                            <svg id="sound-on" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15z" />
+                            </svg>
+                            <svg id="sound-off" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15zM16 10l6 6M22 10l-6 6" />
+                            </svg>
+                        </button>
+                        <!-- [수정] 최소값을 0.1로 설정하여 슬라이더를 맨 왼쪽으로 밀어도 소리가 나도록 함 -->
+                        <input type="range" id="volume-slider" min="0.1" max="1" step="0.05" value="1" class="w-12 sm:w-16 h-1">
+                    </div>
                     <div id="timer-remember" class="flex items-center gap-1 py-2 px-1 text-base transition-all text-gray-600 cursor-pointer">
                         <svg id="remember-off" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3z" />
@@ -193,7 +216,12 @@
             const timerSoundButton = document.getElementById('timer-sound');
             const soundOnIcon = document.getElementById('sound-on');
             const soundOffIcon = document.getElementById('sound-off');
+            const volumeSlider = document.getElementById('volume-slider');
             let soundEnabled = true;
+            let currentVolume = parseFloat(localStorage.getItem('savedVolume')) || 1.0;
+
+            // 볼륨 초기값 설정
+            volumeSlider.value = currentVolume;
 
             function initAudio() {
                 if (!audioContext) {
@@ -201,7 +229,7 @@
                         audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     } catch (e) {
                         soundEnabled = false;
-                        if(timerSoundButton) timerSoundButton.style.display = 'none';
+                        if(timerSoundButton) timerSoundButton.parentElement.style.display = 'none';
                     }
                 }
             }
@@ -211,8 +239,12 @@
                 if (oscillator) { try { oscillator.stop(); } catch(e) {} }
                 gainNode = audioContext.createGain();
                 gainNode.connect(audioContext.destination);
-                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                
+                // [유지] 출력 볼륨 배율 대폭 상향
+                const boostedVolume = currentVolume * 5.0;
+                gainNode.gain.setValueAtTime(boostedVolume, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+                
                 oscillator = audioContext.createOscillator();
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
@@ -256,6 +288,12 @@
             let swElapsedTime = 0;
             let swInterval = null;
             let swRunning = false;
+
+            // 볼륨 슬라이더 이벤트
+            volumeSlider.addEventListener('input', (e) => {
+                currentVolume = parseFloat(e.target.value);
+                localStorage.setItem('savedVolume', currentVolume);
+            });
 
             function updateStopwatchButtonState() {
                 let buttonText = '';
@@ -393,8 +431,8 @@
                 soundEnabled = !soundEnabled;
                 soundOnIcon.classList.toggle('hidden', !soundEnabled);
                 soundOffIcon.classList.toggle('hidden', soundEnabled);
-                timerSoundButton.classList.toggle('bg-red-500', !soundEnabled);
-                timerSoundButton.classList.toggle('text-white', !soundEnabled);
+                timerSoundButton.parentElement.classList.toggle('bg-red-500', !soundEnabled);
+                timerSoundButton.parentElement.classList.toggle('text-white', !soundEnabled);
             });
 
             timerRememberDiv.addEventListener('click', () => {
