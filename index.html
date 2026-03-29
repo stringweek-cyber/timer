@@ -13,7 +13,6 @@
             margin: 0;
             padding: 0;
         }
-        /* 버튼 영역 가로 스크롤바 숨김 (터치/마우스 휠로 스크롤 가능) */
         #lap-list::-webkit-scrollbar,
         #time-controls::-webkit-scrollbar {
             display: none;
@@ -35,24 +34,22 @@
         #timer-remember span {
              white-space: nowrap;
         }
-        /* 화면 중앙 정렬을 보장하는 래퍼 */
         .page-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
-            width: 100%; /* 너비를 화면에 맞춤 */
-            overflow-x: hidden; /* 전체 페이지 가로 스크롤 방지 */
+            width: 100%;
+            overflow-x: hidden;
         }
-        /* 볼륨 슬라이더 커스텀 스타일 */
         #volume-slider {
             -webkit-appearance: none;
             appearance: none;
-            background: #9ca3af; /* 가로 선 색상을 더 명확하게 변경 */
+            background: #9ca3af;
             outline: none;
             border-radius: 999px;
-            height: 4px; /* 선의 두께 명시 */
+            height: 4px;
         }
         #volume-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -62,14 +59,13 @@
             background: #3b82f6;
             cursor: pointer;
             border-radius: 50%;
-            margin-top: 0px; /* 선 중앙에 맞춤 */
+            margin-top: 0px;
         }
     </style>
 </head>
 <body class="bg-white">
 
     <div class="page-wrapper">
-        <!-- 메인 컨테이너 -->
         <div class="w-full max-w-5xl flex flex-col items-center">
             
             <div class="relative flex space-x-2 bg-gray-100 p-1 rounded-full mb-6 sm:mb-10 flex-shrink-0">
@@ -90,9 +86,7 @@
                     00:00<span class="text-[clamp(1rem,12vw,11rem)]">.00</span>
                 </div>
 
-                <!-- 시간 설정 컨트롤 (가로 스크롤 영역) -->
                 <div id="time-controls" class="w-full flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 justify-start md:justify-center px-4">
-                    <!-- 10분 설정 -->
                     <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
                         <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-blue-200 transition-all border-r border-blue-200" data-time="600" data-op="+">
                             <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">10분</span>
@@ -100,7 +94,6 @@
                         </button>
                         <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all flex items-center justify-center" data-time="600" data-op="-">−</button>
                     </div>
-                    <!-- 5분 설정 -->
                     <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
                         <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-blue-200 transition-all border-r border-blue-200" data-time="300" data-op="+">
                             <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">5분</span>
@@ -108,7 +101,6 @@
                         </button>
                         <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all flex items-center justify-center" data-time="300" data-op="-">−</button>
                     </div>
-                    <!-- 1분 설정 -->
                     <div class="flex-shrink-0 flex items-center bg-blue-100 rounded-full shadow-sm overflow-hidden">
                         <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-blue-200 transition-all border-r border-blue-200" data-time="60" data-op="+">
                             <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">1분</span>
@@ -116,7 +108,6 @@
                         </button>
                         <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-blue-200 transition-all flex items-center justify-center" data-time="60" data-op="-">−</button>
                     </div>
-                    <!-- 30초 설정 -->
                     <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
                         <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-gray-200 transition-all border-r border-gray-200" data-time="30" data-op="+">
                             <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">30초</span>
@@ -124,7 +115,6 @@
                         </button>
                         <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-gray-200 flex items-center justify-center" data-time="30" data-op="-">−</button>
                     </div>
-                    <!-- 10초 설정 -->
                     <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
                         <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-gray-200 transition-all border-r border-gray-200" data-time="10" data-op="+">
                             <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">10초</span>
@@ -132,7 +122,6 @@
                         </button>
                         <button class="time-adj w-8 h-8 sm:w-10 sm:h-10 text-lg sm:text-xl font-bold text-red-500 hover:bg-gray-200 flex items-center justify-center" data-time="10" data-op="-">−</button>
                     </div>
-                    <!-- 5초 설정 -->
                     <div class="flex-shrink-0 flex items-center bg-gray-100 rounded-full shadow-sm overflow-hidden">
                         <button class="time-adj flex items-center pl-4 pr-3 py-2 hover:bg-gray-200 transition-all border-r border-gray-200" data-time="5" data-op="+">
                             <span class="text-xs sm:text-sm font-bold text-gray-700 pointer-events-none">5초</span>
@@ -161,7 +150,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707a1 1 0 011.707.707v14.586a1 1 0 01-1.707.707L5.586 15zM16 10l6 6M22 10l-6 6" />
                             </svg>
                         </button>
-                        <!-- [수정] 최소값을 0.1로 설정하여 슬라이더를 맨 왼쪽으로 밀어도 소리가 나도록 함 -->
                         <input type="range" id="volume-slider" min="0.1" max="1" step="0.05" value="1" class="w-12 sm:w-16 h-1">
                     </div>
                     <div id="timer-remember" class="flex items-center gap-1 py-2 px-1 text-base transition-all text-gray-600 cursor-pointer">
@@ -212,7 +200,8 @@
             let audioContext;
             let oscillator;
             let gainNode;
-            let beepTimeout1, beepTimeout2;
+            // ✅ 수정: 3개의 beep timeout 변수 분리 관리
+            let beepTimeout1, beepTimeout2, beepTimeout3;
             const timerSoundButton = document.getElementById('timer-sound');
             const soundOnIcon = document.getElementById('sound-on');
             const soundOffIcon = document.getElementById('sound-off');
@@ -220,7 +209,6 @@
             let soundEnabled = true;
             let currentVolume = parseFloat(localStorage.getItem('savedVolume')) || 1.0;
 
-            // 볼륨 초기값 설정
             volumeSlider.value = currentVolume;
 
             function initAudio() {
@@ -232,15 +220,29 @@
                         if(timerSoundButton) timerSoundButton.parentElement.style.display = 'none';
                     }
                 }
+                // ✅ 수정: suspended 상태라면 resume 시도 (iOS Safari 등 대응)
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
             }
 
             function playBeep() {
-                if (!audioContext || !soundEnabled || audioContext.state !== 'running') return;
-                if (oscillator) { try { oscillator.stop(); } catch(e) {} }
+                if (!audioContext || !soundEnabled) return;
+                // ✅ 수정: suspended 상태면 resume 후 재시도
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(playBeep);
+                    return;
+                }
+                if (audioContext.state !== 'running') return;
+
+                // 이전 oscillator 안전하게 정리
+                if (oscillator) {
+                    try { oscillator.disconnect(); oscillator.stop(); } catch(e) {}
+                    oscillator = null;
+                }
+
                 gainNode = audioContext.createGain();
                 gainNode.connect(audioContext.destination);
-                
-                // [유지] 출력 볼륨 배율 대폭 상향
                 const boostedVolume = currentVolume * 5.0;
                 gainNode.gain.setValueAtTime(boostedVolume, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
@@ -251,12 +253,19 @@
                 oscillator.connect(gainNode);
                 oscillator.start();
                 oscillator.stop(audioContext.currentTime + 0.8);
+                // stop 후 자동으로 null 처리
+                oscillator.onended = () => { oscillator = null; };
             }
 
             function stopBeep() {
+                // ✅ 수정: 3개 timeout 모두 정리
                 clearTimeout(beepTimeout1);
                 clearTimeout(beepTimeout2);
-                if (oscillator) { try { oscillator.stop(); } catch(e) {} oscillator = null; }
+                clearTimeout(beepTimeout3);
+                if (oscillator) {
+                    try { oscillator.disconnect(); oscillator.stop(); } catch(e) {}
+                    oscillator = null;
+                }
             }
             
             document.body.addEventListener('click', initAudio, { once: true });
@@ -289,7 +298,6 @@
             let swInterval = null;
             let swRunning = false;
 
-            // 볼륨 슬라이더 이벤트
             volumeSlider.addEventListener('input', (e) => {
                 currentVolume = parseFloat(e.target.value);
                 localStorage.setItem('savedVolume', currentVolume);
@@ -416,9 +424,12 @@
             function stopTimer(playAlarm) {
                 pauseTimer();
                 if (playAlarm && soundEnabled) {
-                    playBeep();
-                    beepTimeout1 = setTimeout(playBeep, 900);
-                    beepTimeout2 = setTimeout(playBeep, 1800);
+                    // ✅ 핵심 수정: 첫 번째 beep도 setTimeout(0)으로 감싸서
+                    //    interval 콜백 종료 후 안정된 상태에서 AudioContext 실행
+                    //    → 3번 모두 일정한 간격(0ms / 900ms / 1800ms)으로 재생 보장
+                    beepTimeout1 = setTimeout(playBeep, 0);
+                    beepTimeout2 = setTimeout(playBeep, 900);
+                    beepTimeout3 = setTimeout(playBeep, 1800);
                 }
                 totalMilliseconds = rememberTimeEnabled ? lastSetTimeMs : 0;
                 updateTimerDisplay(); 
